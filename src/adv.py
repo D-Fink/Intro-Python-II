@@ -1,27 +1,36 @@
 from room import Room
 from player import Player
-from item import Item
+from money import Money
+from weapon import Weapon
+from armor import Armor
+import random
 
 # Declare all the rooms
+
+gold_outside = random.randint(1, 50)
+gold_foyer = random.randint(1, 50)
+gold_overlook = random.randint(1, 50)
+gold_narrow = random.randint(1, 50)
+gold_treasure = random.randint(100, 500)
 
 room = {
     'outside':  Room("Outside Cave Entrance",
                      "North of you, the cave mount beckons",
-                     [Item("Coins", "A sack of gold [Coins]"), Item("Sword", "A Rusted Iron [Sword]")]),
+                     [Money("Coins", f"A sack of {gold_outside} [Coins]", gold_outside), Weapon("Sword", "A Rusted Iron [Sword]", 5)]),
 
     'foyer':    Room("Foyer", """Dim light filters in from the south. Dusty
-passages run north and east.""", [Item("Coins", "A sack of gold [Coins]"), Item("Shield", "A rusty iron [Shield].")]),
+passages run north and east.""", [Money("Coins", f"A sack of {gold_foyer}[Coins]", gold_foyer), Armor("Shield", "A rusty iron [Shield].", 5)]),
 
     'overlook': Room("Grand Overlook", """A steep cliff appears before you, falling
 into the darkness. Ahead to the north, a light flickers in
-the distance, but there is no way across the chasm.""", [Item("Coins", "A sack of gold [Coins]"), Item("Chestplate", "A rusty iron [Chestplate]")]),
+the distance, but there is no way across the chasm.""", [Money("Coins", f"A sack of {gold_overlook}[Coins]", gold_overlook), Armor("Chestplate", "A rusty iron [Chestplate]", 10)]),
 
     'narrow':   Room("Narrow Passage", """The narrow passage bends here from west
-to north. The smell of gold permeates the air.""", [Item("Coins", "A sack of gold [Coins]"), Item("Helm", "A rusty iron [Helm]et")]),
+to north. The smell of gold permeates the air.""", [Money("Coins", f"A sack of {gold_narrow}[Coins]", gold_narrow), Armor("Helm", "A rusty iron [Helm]et", 3)]),
 
     'treasure': Room("Treasure Chamber", """You've found the long-lost treasure
 chamber! Sadly, it has already been completely emptied by
-earlier adventurers. The only exit is to the south.""", [Item("Coins", "A sack of gold [Coins]"), Item("Boots", "A pair of moldy [Boots]")]),
+earlier adventurers. The only exit is to the south.""", [Money("Coins", f"A sack of {gold_treasure}[Coins]", gold_treasure), Armor("Boots", "A pair of moldy [Boots]", 2)]),
 }
 
 
@@ -57,7 +66,7 @@ game = True
 print(f'\n\nYou are in the {player.current_room.name}. \n {player.current_room.desc}\n')
 
 while game == True:
-    direction = input("\nPlease enter direction ([n]orth [s]outh [e]ast [w]est [search] [i]nventory [q]uit):\n")
+    direction = input("\nPlease enter direction ([n]orth [s]outh [e]ast [w]est [search] [i]nventory [eq]uipment [st]atus [q]uit):\n")
 
     if direction == 'n':
         player.move(direction)
@@ -89,11 +98,16 @@ while game == True:
                         player.take(x[1])
                 
                 elif len(x) == 1:
-                    #if x[0] != 'all' or x[0] != 'none':
-                    #    print("\n***Please choose from available commands***\n")
                     if x[0] == 'all':
+                        print("\nYou put all the items in your inventory")
                         for i in player.current_room.items:
-                            player.inv.append(i)
+                            if i.__class__.__name__ == "Money":
+                                player.gold += i.amount
+                                del player.current_room.items[0:0]
+                            if i.__class__.__name__ == "Weapon":
+                                player.inv.append(i)
+                            if i.__class__.__name__ == "Armor":
+                                player.inv.append(i)
                         del player.current_room.items[:]
 
                         interact = False
@@ -110,19 +124,24 @@ while game == True:
 
         while inventory == True:
 
-            print(f"\nInventory:")
+            print(f"\nGold: {player.gold}")
+
+            print(f"Inventory:")
             for i in player.inv:
                 print(f'[{i}]')
 
-            x = [str(x) for x in input("\n([drop] [item] or [c]lose)\n").split()]
+            x = [str(x) for x in input("\n([drop/equip] [item] or [c]lose)\n").split()]
 
             if len(x) == 2:
 
-                if x[0] != 'drop':
-                    print("\n***Please choose from available commands***\n")
-                else:
+                if x[0] == 'equip':
+                    player.equip(x[1])
+
+                elif x[0] == 'drop':
                     player.drop(x[1])
-                    
+
+                else:
+                    print("\n***Please choose from available commands***\n")
 
             elif len(x) == 1:
 
@@ -133,6 +152,23 @@ while game == True:
 
             else:
                 print("\n***Please choose from available commands***\n")
+
+    elif direction == 'eq':
+        equipment = True
+        while equipment == True:
+            if len(player.equipment) == 0:
+                print("You have nothing equipped")
+                equipment = False
+            else:
+                for i in player.equipment:
+                    if i.__class__.__name__ == "Weapon":
+                        print(f"{i.iname}: attack({i.rating})")
+                    elif i.__class__.__name__ == "Armor":
+                        print(f"{i.iname}: armor({i.rating}")
+
+    elif direction == 'st':
+        print(f"Name: {player.name}\nHealth: {player.hp}\nAttack: {player.att}\nDefense: {player.defense}")
+
 
     elif direction == 'q':
         game = False
