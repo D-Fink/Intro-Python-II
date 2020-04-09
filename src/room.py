@@ -1,13 +1,17 @@
 # Implement a class to hold room information. This should have name and
 # description attributes.
+from item import Item
 
-class Room:
-    def __init__(self, name, desc):
+class Room(Item):
+    def __init__(self, name, desc, items=None):
         self.name = name
         self.desc = desc
+        self.n_to = None
+        self.e_to = None
+        self.s_to = None
+        self.w_to = None
 
-    def get_room(self, name, desc):
-        return self.name and self.desc
-
-    def __str__(self):
-        return "{}. {}".format(self.name, self.desc)
+        if items is None:
+            self.items = []
+        else:
+            self.items = items
